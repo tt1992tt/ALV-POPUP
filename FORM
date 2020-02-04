@@ -1,0 +1,77 @@
+  DATA: lt_fcat TYPE slis_t_fieldcat_alv,
+        ls_fcat TYPE slis_fieldcat_alv,
+        lv_sel TYPE slis_selfield,
+        lt_excl TYPE slis_t_extab,
+        ls_excl TYPE slis_extab,
+        lv_exit TYPE c.
+
+  CLEAR ls_fcat.
+  ls_fcat-row_pos = '1'.
+  ls_fcat-col_pos = '1'.
+  ls_fcat-fieldname = 'MSGTY'.
+  ls_fcat-tabname = 'IT_MSG'.
+  ls_fcat-seltext_m = 'Resultado'.
+  APPEND ls_fcat TO lt_fcat.
+
+  CLEAR ls_fcat.
+  ls_fcat-row_pos = '1'.
+  ls_fcat-col_pos = '2'.
+  ls_fcat-fieldname = 'MSGV1'.
+  ls_fcat-tabname = 'IT_MSG'.
+  ls_fcat-seltext_m = 'Proveedor'.
+  APPEND ls_fcat TO lt_fcat.
+
+  CLEAR ls_fcat.
+  ls_fcat-row_pos = '1'.
+  ls_fcat-col_pos = '2'.
+  ls_fcat-fieldname = 'MSGV2'.
+  ls_fcat-tabname = 'IT_MSG'.
+  ls_fcat-seltext_m = 'Referencia de comp'.
+  APPEND ls_fcat TO lt_fcat.
+
+* Creamos Exclusiones de Toolbar
+  ls_excl-fcode = '&ALL'. APPEND ls_excl TO lt_excl.
+  ls_excl-fcode = '&SAL'. APPEND ls_excl TO lt_excl.
+  ls_excl-fcode = '&ETA'. APPEND ls_excl TO lt_excl.
+  ls_excl-fcode = '%SC'.  APPEND ls_excl TO lt_excl.
+  ls_excl-fcode = '%SC+'. APPEND ls_excl TO lt_excl.
+  ls_excl-fcode = '&OUP'. APPEND ls_excl TO lt_excl.
+  ls_excl-fcode = '&ODN'. APPEND ls_excl TO lt_excl.
+  ls_excl-fcode = '&ILT'. APPEND ls_excl TO lt_excl.
+  ls_excl-fcode = '&O10'. APPEND ls_excl TO lt_excl.
+  ls_excl-fcode = '&CRB'. APPEND ls_excl TO lt_excl.
+  ls_excl-fcode = '&CRL'. APPEND ls_excl TO lt_excl.
+  ls_excl-fcode = '&CRR'. APPEND ls_excl TO lt_excl.
+  ls_excl-fcode = '&CRE'. APPEND ls_excl TO lt_excl.
+
+  CALL FUNCTION 'REUSE_ALV_POPUP_TO_SELECT'
+    EXPORTING
+      i_title               = 'Resultado de la ejecución'
+      i_selection           = 'X' " (X) = permite seleccionar, ( ) = sólo visualizar
+      i_allow_no_selection  = 'S' " Allow copy although nothing is selected
+      i_zebra               = 'X' " Modo Zebra para registros
+      i_screen_start_column = 1
+      i_screen_start_line   = 1
+      i_screen_end_column   = 80
+      i_screen_end_line     = 60
+      i_tabname             = 'IT_MSG' " Tabla de salida
+      it_fieldcat           = lt_fcat " Catálogo de campos
+      it_excluding          = lt_excl " Excluir botones
+    IMPORTING
+      es_selfield           = lv_sel " Info de la selección para una selección simple
+      e_exit                = lv_exit " Queda en ‘X' cuando el usuario aprieta Cancelar
+    TABLES
+      t_outtab              = it_msg " Tabla de entrada/salida
+    EXCEPTIONS
+      program_error         = 1
+      OTHERS                = 2.
+
+  IF sy-subrc <> 0.
+* Error
+    MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+    WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+  ELSE.
+* Si no puso cancelar…
+    IF lv_exit NE 'X'.
+    ENDIF.
+  ENDIF.
